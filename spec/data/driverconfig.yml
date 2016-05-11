@@ -1,0 +1,26 @@
+# the hierarchy is mock -> branch1 -> branch2 -> leaf
+#
+# We test
+# a) having a base before its derived by ordering mock before branch1
+# b) having a base after its derived by ordering branch2 after leaf
+# c) overrides by having leaf override the option from branch1
+#
+# so the order in this file has to be mock -> branch2 -> branch1 -> leaf
+---
+drivers:
+  mock:
+    mockoption: 42
+  branch2:
+    extends: branch1
+    branch2option: bar
+  branch1:
+    extends: mock
+    branch1option: foo
+  leaf:
+    extends: branch2
+    leafoption: baz
+    branch1option: override
+  base_does_not_exist:
+    extends: nonexistent_base
+    some: value
+driver: leaf

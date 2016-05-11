@@ -1,0 +1,4 @@
+---
+extends_itself:
+  extends: extends_itself
+  test: 42

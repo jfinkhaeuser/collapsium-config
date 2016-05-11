@@ -11,7 +11,7 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'collapsium-config/version'
 
-# rubocop:disable Style/UnneededPercentQ
+# rubocop:disable Style/UnneededPercentQ, Style/ExtraSpacing
 # rubocop:disable Style/SpaceAroundOperators
 Gem::Specification.new do |spec|
   spec.name          = "collapsium-config"
@@ -19,10 +19,12 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Jens Finkhaeuser"]
   spec.email         = ["jens@finkhaeuser.de"]
   spec.description   = %q(
-        FIXME
+    Using collapsium's UberHash class for easy access to configuration values,
+    this gem reads and merges various configuration sources into one
+    configuration object.
   )
   spec.summary       = %q(
-        FIXME
+    Collapse multiple configuration sources into one collapsium UberHash.
   )
   spec.homepage      = "https://github.com/jfinkhaeuser/collapsium-config"
   spec.license       = "MITNFA"
@@ -44,4 +46,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'collapsium', '~> 0.1'
 end
 # rubocop:enable Style/SpaceAroundOperators
-# rubocop:enable Style/UnneededPercentQ
+# rubocop:enable Style/UnneededPercentQ, Style/ExtraSpacing
