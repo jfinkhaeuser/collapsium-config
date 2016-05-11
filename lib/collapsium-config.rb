@@ -31,21 +31,24 @@ module Collapsium
       def config_file
         return @config_file || DEFAULT_CONFIG_PATH
       end
+
+      # @api private
+      attr_accessor :config
     end # module ClassMethods
     extend ClassMethods
 
     ##
-    # Access the global configuration
+    # Access the global configuration.
     def config
-      if @config.nil?
+      if Config.config.nil? or Config.config.empty?
         begin
-          @config = Configuration.load_config(Config.config_file)
+          Config.config = Configuration.load_config(Config.config_file)
         rescue Errno::ENOENT
-          @config = {}
+          Config.config = {}
         end
       end
 
-      return @config
+      return Config.config
     end
   end # module Config
 end # module Collapsium
