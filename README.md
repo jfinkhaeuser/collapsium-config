@@ -21,3 +21,15 @@ various configuration sources into one configuration object.
   to include all values from another configuration Hash.
 - Using the special, top-level `include` configuration key, allows a
   configuration file to be split into multiple included files.
+
+# Usage
+
+While you can use the `Configuration` class yourself, the simplest usage is to
+access a global configuration object:
+
+```ruby
+require 'collapsium-config'
+include Collapsium::Config
+
+puts config["foo"] # loaded automatically from config.yml
+```
