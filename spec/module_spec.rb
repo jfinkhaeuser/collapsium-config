@@ -26,7 +26,7 @@ describe Collapsium::Config do
 
     it "loads configuration from an existing path" do
       Collapsium::Config.config_file = File.join(@data_path, 'global.yml')
-      expect { config.empty? }.not_to raise_error(ArgumentError)
+      expect { config.empty? }.not_to raise_error
       expect(config.empty?).to be_falsy
     end
 
