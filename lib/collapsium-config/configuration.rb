@@ -43,10 +43,11 @@ module Collapsium
       # Very simple YAML parser
       class YAMLParser
         require 'yaml'
+        require 'erb'
 
-        # @return parsed string
+        # @return ERB parsed string
         def self.parse(string)
-          YAML.load(string)
+          YAML.load(ERB.new(string).result)
         end
       end
       private_constant :YAMLParser
