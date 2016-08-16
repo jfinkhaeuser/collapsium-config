@@ -46,7 +46,7 @@ module Collapsium
 
         # @return parsed string
         def self.parse(string)
-          YAML.load(string)
+          return YAML.load(string)
         end
       end
       private_constant :YAMLParser
@@ -58,7 +58,7 @@ module Collapsium
 
         # @return parsed string
         def self.parse(string)
-          JSON.parse(string)
+          return JSON.parse(string)
         end
       end
       private_constant :JSONParser
