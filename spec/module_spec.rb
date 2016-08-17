@@ -1,4 +1,5 @@
 require 'spec_helper'
+      require 'pry'
 require_relative '../lib/collapsium-config'
 
 include Collapsium::Config
@@ -6,6 +7,9 @@ include Collapsium::Config
 describe Collapsium::Config do
   before do
     @data_path = File.join(File.dirname(__FILE__), 'data')
+    ENV.delete("SOME_PATH")
+    ENV.delete("SOME")
+    ENV.delete("PATH")
   end
 
   it "fails to load configuration from the default path (it does not exist)" do
@@ -38,6 +42,19 @@ describe Collapsium::Config do
       cfg2 = config
 
       expect(cfg1.object_id).to eql cfg2.object_id
+    end
+
+    it "returns a config hash capable of environment overrides" do
+      Collapsium::Config.config_file = File.join(@data_path, 'global.yml')
+
+      # Pre environment manipulation
+      expect(config["some.path"]).to eql 123
+
+      # With environment manipulation
+      ENV["SOME_PATH"] = "override"
+
+      expect(config["some.path"]).to eql "override"
+      expect(config["some"]["path"]).to eql "override"
     end
   end
 end
