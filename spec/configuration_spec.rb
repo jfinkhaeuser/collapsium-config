@@ -83,6 +83,17 @@ describe Collapsium::Config::Configuration do
       expect(cfg["baz"]).to eql "override"
       ENV.delete("BAZ")
     end
+
+    it "parses JSON when overriding from the environment" do
+      config = File.join(@data_path, 'hash.yml')
+      cfg = Collapsium::Config::Configuration.load_config(config)
+
+      ENV["BAZ"] = '{ "json_key": "json_value" }'
+      expect(cfg["foo"]).to eql "bar"
+      expect(cfg["baz"].is_a?(Hash)).to be_truthy
+      expect(cfg["baz.json_key"]).to eql "json_value"
+      ENV.delete("BAZ")
+    end
   end
 
   describe "extend functionality" do
@@ -178,6 +189,15 @@ describe Collapsium::Config::Configuration do
 
       # UberHash's [] requires one argument
       expect { cfg[] }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe "ERB templating" do
+    it "replaces variables" do
+      config = File.join(@data_path, 'template.yml')
+      cfg = Collapsium::Config::Configuration.load_config(config)
+
+
     end
   end
 end

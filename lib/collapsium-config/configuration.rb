@@ -39,6 +39,8 @@ module Collapsium
     # That means that if you are trying to merge a hash with an array config, the
     # result may be unexpected.
     class Configuration < ::Collapsium::UberHash
+      include ::Collapsium::EnvironmentOverride
+
       # @api private
       # Very simple YAML parser
       class YAMLParser
@@ -63,39 +65,6 @@ module Collapsium
       end
       private_constant :JSONParser
 
-      UberHash::READ_METHODS.each do |method|
-        # Wrap all read functions into something that checks for environment
-        # variables first.
-        define_method(method) do |*args, &block|
-          # If there are no arguments, there's nothing to do with paths. Just
-          # delegate to the hash.
-          if args.empty?
-            return super(*args, &block)
-          end
-
-          # We'll make it rather simple: since the first argument is a key, we
-          # will just transform it to the matching environment variable name,
-          # and see if that environment variable is set.
-          env_name = args[0].to_s.upcase.gsub(split_pattern, '_')
-          contents = nil
-          if env_name != '_'
-            contents = ENV[env_name]
-          end
-
-          # No environment variable set? Fine, just do the usual thing.
-          if contents.nil? or contents.empty?
-            return super(*args, &block)
-          end
-
-          # With an environment variable, we will try to parse it as JSON first.
-          begin
-            return JSONParser.parse(contents)
-          rescue JSON::ParserError
-            return contents
-          end
-        end
-      end
-
       class << self
         # @api private
         # Mapping of file name extensions to parser types.
@@ -117,24 +86,32 @@ module Collapsium
         # detected based on one of the extensions in FILE_TO_PARSER.
         #
         # @param path [String] the path of the configuration file to load.
-        # @param resolve_extensions [Boolean] flag whether to resolve configuration
-        #   hash extensions. (see `#resolve_extensions`)
-        def load_config(path, resolve_extensions = true)
+        # @param options [Hash] options hash with the following keys:
+        #   - resolve_extensions [Boolean] flag whether to resolve configuration
+        #       hash extensions. (see `#resolve_extensions`)
+        #   - data [Hash] data Hash to pass on to the templating mechanism.
+        def load_config(path, options = {})
+          # Option defaults
+          if options[:resolve_extensions].nil?
+            options[:resolve_extensions] = true
+          end
+          options[:data] ||= {}
+
           # Load base and local configuration files
-          base, config = load_base_config(path)
-          _, local_config = load_local_config(base)
+          base, config = load_base_config(path, options[:data])
+          _, local_config = load_local_config(base, options[:data])
 
           # Merge local configuration
           config.recursive_merge!(local_config)
 
           # Resolve includes
-          config = resolve_includes(base, config)
+          config = resolve_includes(base, config, options[:data])
 
           # Create config from the result
           cfg = Configuration.new(config)
 
           # Now resolve config hashes that extend other hashes.
-          if resolve_extensions
+          if options[:resolve_extensions]
             cfg.resolve_extensions!
           end
 
@@ -143,7 +120,17 @@ module Collapsium
 
         private
 
-        def load_base_config(path)
+        def parse(extension, contents, data)
+          # Evaluate template
+          require 'erb'
+          b = binding
+          contents = ERB.new(contents).result(b)
+
+          # Pass on to file type parser
+          return FILE_TO_PARSER[extension].parse(contents)
+        end
+
+        def load_base_config(path, template_data)
           # Make sure the format is recognized early on.
           base = Pathname.new(path)
           formats = FILE_TO_PARSER.keys
@@ -158,12 +145,12 @@ module Collapsium
           contents = file.read
 
           # Parse the contents.
-          config = FILE_TO_PARSER[base.extname].parse(contents)
+          config = parse(base.extname, contents, template_data)
 
           return base, UberHash.new(hashify(config))
         end
 
-        def load_local_config(base)
+        def load_local_config(base, template_data)
           # Now construct a file name for a local override.
           local = Pathname.new(base.dirname)
           local = local.join(base.basename(base.extname).to_s + "-local" +
@@ -177,7 +164,7 @@ module Collapsium
           file = local.open
           contents = file.read
 
-          local_config = FILE_TO_PARSER[base.extname].parse(contents)
+          local_config = parse(base.extname, contents, template_data)
 
           return local, UberHash.new(hashify(local_config))
         end
@@ -192,7 +179,7 @@ module Collapsium
           return data
         end
 
-        def resolve_includes(base, config)
+        def resolve_includes(base, config, template_data)
           processed = []
           includes = []
 
@@ -219,14 +206,14 @@ module Collapsium
               file = incfile.open
               contents = file.read
 
-              parsed = FILE_TO_PARSER[incfile.extname].parse(contents)
+              parsed = parse(incfile.extname, contents, template_data)
 
               # Extract and merge includes
               inner_inc = extract_includes(parsed)
               includes += inner_inc
 
               # Merge the rest
-              config.recursive_merge!(UberHash.new(hashify(parsed)))
+              config.recursive_merge!(hashify(parsed))
 
               processed << filename
             end
