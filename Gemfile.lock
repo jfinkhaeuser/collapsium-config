@@ -1,51 +1,51 @@
 PATH
   remote: .
   specs:
-    collapsium-config (0.1.1)
-      collapsium (~> 0.1)
+    collapsium-config (0.2.0)
+      collapsium (~> 0.4)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    ast (2.2.0)
-    codeclimate-test-reporter (0.5.1)
+    ast (2.3.0)
+    codeclimate-test-reporter (0.6.0)
       simplecov (>= 0.7.1, < 1.0.0)
-    collapsium (0.2.1)
+    collapsium (0.4.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
-    json (1.8.3)
+    json (2.0.2)
     parser (2.3.1.2)
       ast (~> 2.2)
     powerpack (0.1.1)
     rainbow (2.1.0)
-    rake (11.1.2)
-    rspec (3.4.0)
-      rspec-core (~> 3.4.0)
-      rspec-expectations (~> 3.4.0)
-      rspec-mocks (~> 3.4.0)
-    rspec-core (3.4.4)
-      rspec-support (~> 3.4.0)
-    rspec-expectations (3.4.0)
+    rake (11.2.2)
+    rspec (3.5.0)
+      rspec-core (~> 3.5.0)
+      rspec-expectations (~> 3.5.0)
+      rspec-mocks (~> 3.5.0)
+    rspec-core (3.5.2)
+      rspec-support (~> 3.5.0)
+    rspec-expectations (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.4.0)
-    rspec-mocks (3.4.1)
+      rspec-support (~> 3.5.0)
+    rspec-mocks (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.4.0)
-    rspec-support (3.4.1)
-    rubocop (0.40.0)
-      parser (>= 2.3.1.0, < 3.0)
+      rspec-support (~> 3.5.0)
+    rspec-support (3.5.0)
+    rubocop (0.42.0)
+      parser (>= 2.3.1.1, < 3.0)
       powerpack (~> 0.1)
       rainbow (>= 1.99.1, < 3.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.8.1)
-    simplecov (0.11.2)
+    simplecov (0.12.0)
       docile (~> 1.1.0)
-      json (~> 1.8)
+      json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.0)
-    unicode-display_width (1.0.5)
-    yard (0.8.7.6)
+    unicode-display_width (1.1.0)
+    yard (0.9.5)
 
 PLATFORMS
   ruby
@@ -54,11 +54,11 @@ DEPENDENCIES
   bundler (~> 1.12)
   codeclimate-test-reporter
   collapsium-config!
-  rake (~> 11.1)
-  rspec (~> 3.4)
-  rubocop (~> 0.40)
-  simplecov (~> 0.11)
-  yard (~> 0.8)
+  rake (~> 11.2)
+  rspec (~> 3.5)
+  rubocop (~> 0.42)
+  simplecov (~> 0.12)
+  yard (~> 0.9)
 
 BUNDLED WITH
-   1.12.3
+   1.12.5
