@@ -195,9 +195,14 @@ describe Collapsium::Config::Configuration do
   describe "ERB templating" do
     it "replaces variables" do
       config = File.join(@data_path, 'template.yml')
-      cfg = Collapsium::Config::Configuration.load_config(config)
 
+      data = {
+        my_var: Random.rand
+      }
+      cfg = Collapsium::Config::Configuration.load_config(config, data: data)
 
+      expect(cfg["foo"]).to eql "bar"
+      expect(cfg["baz"]).to eql data[:my_var]
     end
   end
 end
