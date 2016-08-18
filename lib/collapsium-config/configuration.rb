@@ -147,7 +147,7 @@ module Collapsium
           # Parse the contents.
           config = parse(base.extname, contents, template_data)
 
-          return base, UberHash.new(hashify(config))
+          return base, Configuration.new(hashify(config))
         end
 
         def load_local_config(base, template_data)
@@ -166,7 +166,7 @@ module Collapsium
 
           local_config = parse(base.extname, contents, template_data)
 
-          return local, UberHash.new(hashify(local_config))
+          return local, Configuration.new(hashify(local_config))
         end
 
         def hashify(data)
