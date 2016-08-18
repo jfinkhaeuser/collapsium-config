@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    collapsium-config (0.2.0)
+    collapsium-config (0.2.1)
       collapsium (~> 0.4)
 
 GEM
