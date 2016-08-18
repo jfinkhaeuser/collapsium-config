@@ -4,6 +4,7 @@ require_relative '../lib/collapsium-config/configuration'
 describe Collapsium::Config::Configuration do
   before do
     @data_path = File.join(File.dirname(__FILE__), 'data')
+    ENV.delete("BAZ")
   end
 
   describe "basic file loading" do
@@ -81,7 +82,6 @@ describe Collapsium::Config::Configuration do
       ENV["BAZ"] = "override"
       expect(cfg["foo"]).to eql "bar"
       expect(cfg["baz"]).to eql "override"
-      ENV.delete("BAZ")
     end
 
     it "parses JSON when overriding from the environment" do
@@ -92,7 +92,6 @@ describe Collapsium::Config::Configuration do
       expect(cfg["foo"]).to eql "bar"
       expect(cfg["baz"].is_a?(Hash)).to be_truthy
       expect(cfg["baz.json_key"]).to eql "json_value"
-      ENV.delete("BAZ")
     end
   end
 
