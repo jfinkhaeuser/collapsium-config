@@ -21,8 +21,10 @@ various configuration sources into one configuration object.
   to include all values from another configuration Hash.
 - Using the special, top-level `include` configuration key, allows a
   configuration file to be split into multiple included files.
+- As of `v0.2`, configuration files are [ERB templates](http://ruby-doc.org/stdlib-2.3.1/libdoc/erb/rdoc/ERB.html).
+  Do your templating stuff as you'd usually do it.
 
-# Usage
+# Basic Usage
 
 While you can use the `Configuration` class yourself, the simplest usage is to
 access a global configuration object:
@@ -32,4 +34,47 @@ require 'collapsium-config'
 include Collapsium::Config
 
 puts config["foo"] # loaded automatically from config.yml
+```
+
+# Advanced Usage
+
+## Configuration File Location
+
+The friendly neighbour to the `#config` function introduced in the basic
+usage section above is the `#config_file` accessor. Its value will default
+to `config.yml`, but you can set it to something different, too:
+
+```ruby
+config_file = 'foo.yaml'
+puts config["foo"] # loaded automatically from foo.yaml
+```
+
+## Loading Configuration Files
+
+All that `#config` and `#config_file` do is wrap `#load_config` such that
+configuration is loaded only once. You can load configuration files manually,
+too:
+
+```ruby
+my_config = Collapsium::Config::Configuration.load_config('filename.yaml')
+```
+
+## Templating
+
+ERB templating in configuration files works out-of-the-box, but one of the
+more powerful features is of course to substitute some values in the template
+which your loading code already knows. If you're using `#load_config`, you
+can do that with the `data` keyword parameter:
+
+```ruby
+my_data_hash = {}
+my_config = Configuration.load_config('foo.yaml', data: my_data_hash)
+```
+
+Note that the template has access to the entire hash under the `data` name,
+not to its individual keys:
+
+```erb
+<%= data[:some_key] %> # correct usage
+<%= some_key %>        # incorrect usage
 ```
