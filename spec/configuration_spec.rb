@@ -120,6 +120,10 @@ describe Collapsium::Config::Configuration do
       expect(cfg["drivers.branch1.base"]).to eql 'mock'
       expect(cfg["drivers.branch2.base"]).to eql 'mock'
       expect(cfg["drivers.leaf.base"]).to eql 'mock'
+
+      # We expect that 'derived' is extended with '.other.base', too
+      expect(cfg["derived.test.foo"]).to eql 'bar'
+      expect(cfg["derived.test.some"]).to eql 'option'
     end
 
     it "extends configuration hashes when the base does not exist" do

@@ -24,3 +24,12 @@ drivers:
     extends: nonexistent_base
     some: value
 driver: leaf
+
+other:
+  base:
+    some: option
+
+derived:
+  test:
+    foo: bar
+    extends: .other.base
