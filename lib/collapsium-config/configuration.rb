@@ -65,6 +65,10 @@ module Collapsium
       end
       private_constant :JSONParser
 
+      def initialize(*args)
+        super(*args)
+      end
+
       class << self
         # @api private
         # Mapping of file name extensions to parser types.
@@ -267,80 +271,90 @@ module Collapsium
       # keywords that cannot be used in configuration files other than for this
       # purpose!
       def resolve_extensions!
-        recursive_merge("", "")
+        # The root object is always a Hash, so has keys, which can be processed
+        # recursively.
+        recursive_resolve(self)
       end
 
-      private
+      def recursive_resolve(root, prefix = "")
+        # The self object is a Hash or an Array. Let's iterate over its children
+        # one by one. Defaulting to a Hash here is just convenience, it could
+        # equally be an Array.
+        children = root.fetch(prefix, {})
 
-      def recursive_merge(parent, key)
-        loop do
-          full_key = "#{parent}#{separator}#{key}"
+        merge_base(root, prefix, children)
 
-          # Recurse down to the remaining root of the hierarchy
-          base = full_key
-          derived = nil
-          loop do
-            new_base, new_derived = resolve_extension(parent, base)
-
-            if new_derived.nil?
-              break
-            end
-
-            base = new_base
-            derived = new_derived
+        if children.is_a? Hash
+          children.each do |key, _|
+            full_key = normalize_path("#{prefix}#{separator}#{key}")
+            recursive_resolve(root, full_key)
           end
-
-          # If recursion found nothing to merge, we're done!
-          if derived.nil?
-            break
+        elsif children.is_a? Array
+          children.each_with_index do |_, idx|
+            key = idx.to_s
+            full_key = normalize_path("#{prefix}#{separator}#{key}")
+            recursive_resolve(root, full_key)
           end
-
-          # Otherwise, merge what needs merging and continue
-          merge_extension(base, derived)
         end
       end
 
-      def resolve_extension(grandparent, parent)
-        fetch(parent, {}).each do |key, value|
-          # Recurse into hash values
-          if value.is_a? Hash
-            recursive_merge(parent, key)
-          end
-
-          # No hash, ignore any keys other than the special "extends" key
-          if key != "extends"
-            next
-          end
-
-          # If the key is "extends", return a normalized version of its value.
-          full_value = value.dup
-          if not full_value.start_with?(separator)
-            full_value = "#{grandparent}#{separator}#{value}"
-          end
-
-          if full_value == parent
-            next
-          end
-          return full_value, parent
-        end
-
-        return nil, nil
-      end
-
-      def merge_extension(base, derived)
-        # Remove old 'extends' key, but remember the value
-        extends = self[derived]["extends"]
-        self[derived].delete("extends")
-
-        # Recursively merge base into derived without overwriting
-        self[derived].extend(::Collapsium::RecursiveMerge)
-        self[derived].recursive_merge!(self[base], false)
-
-        # Then set the "base" keyword, but only if it's not yet set.
-        if not self[derived]["base"].nil?
+      def merge_base(root, path, value)
+        # If the value is not a Hash, we can't do anything here.
+        if not value.is_a? Hash
           return
         end
-        self[derived]["base"] = extends
+
+        # If the value contains an "extends" keyword, we can find the value's
+        # base. Otherwise there's nothing to do.
+        if not value.include? "extends"
+          return
+        end
+
+        # Now to resolve the path to the base and remove the "extends" keyword.
+        base_paths = value["extends"]
+        base_paths = base_paths.split(/,/).map(&:strip)
+        bases = {}
+        base_paths.each do |base_path|
+          if not base_path.start_with?(separator)
+            parent = parent_path(path)
+            base_path = "#{parent}#{separator}#{base_path}"
+          end
+          base_path = normalize_path(base_path)
+
+          # Fetch the base value from the root. This makes full use of
+          # PathedAccess.
+          # We default to nil. Only Hash base values can be processed.
+          base_value = root.fetch(base_path, nil)
+          if not base_value.is_a? Hash
+            next
+          end
+
+          bases[base_path] = base_value
+        end
+
+        # Only delete the "extends" keyword if we found all base.
+        if bases.length == base_paths.length
+          value.delete("extends")
+        end
+
+        # We need to recursively resolve the base values before merging them into
+        # value. To preserve the override order, we need to overwrite values when
+        # merging bases...
+        merged_base = Configuration.new
+        bases.each do |base_path, base_value|
+          base_value.recursive_resolve(root, base_path)
+          merged_base.recursive_merge!(base_value, true)
+        end
+
+        # ... but value needs to stay authoritative.
+        value.recursive_merge!(merged_base, false)
+
+        # Set the base if all is well.
+        if value["base"].nil? and not bases.keys.empty?
+          value["base"] = bases.keys
+        end
+
+        root[path] = value
       end
     end # class Configuration
   end # module Config
