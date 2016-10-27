@@ -5,3 +5,5 @@ foo:
   bar: quux
 bar_base:
   baz: 42
+merged:
+  first: 1

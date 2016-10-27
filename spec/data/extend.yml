@@ -4,3 +4,5 @@ foo_base:
 bar:
   extends: bar_base
   foo: something
+merged:
+  second: 2

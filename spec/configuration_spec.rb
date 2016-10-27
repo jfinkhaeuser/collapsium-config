@@ -117,13 +117,25 @@ describe Collapsium::Config::Configuration do
       expect(cfg["drivers.leaf.branch2option"]).to eql "bar"
 
       # Also test that all levels go back to base == mock
-      expect(cfg["drivers.branch1.base"]).to eql 'mock'
-      expect(cfg["drivers.branch2.base"]).to eql 'mock'
-      expect(cfg["drivers.leaf.base"]).to eql 'mock'
+      expect(cfg["drivers.branch1.base"]).to eql %w(.drivers.mock)
+      expect(cfg["drivers.branch2.base"]).to eql %w(.drivers.mock)
+      expect(cfg["drivers.leaf.base"]).to eql %w(.drivers.mock)
 
       # We expect that 'derived' is extended with '.other.base', too
       expect(cfg["derived.test.foo"]).to eql 'bar'
       expect(cfg["derived.test.some"]).to eql 'option'
+
+      # Expect this to also work with list items
+      expect(cfg["derived.test2.0.foo"]).to eql 'bar'
+      expect(cfg["derived.test2.0.some"]).to eql 'option'
+
+      expect(cfg["derived.test3.foo"]).to eql 'bar'
+      expect(cfg["derived.test3.some2"]).to eql 'option2'
+
+      # Expect this to work with multiple inheritance
+      expect(cfg["derived.test4.foo"]).to eql 'bar'
+      expect(cfg["derived.test4.some"]).to eql 'option_override'
+      expect(cfg["derived.test4.some2"]).to eql 'option2'
     end
 
     it "extends configuration hashes when the base does not exist" do
@@ -133,8 +145,11 @@ describe Collapsium::Config::Configuration do
       # Ensure the hash contains its own value
       expect(cfg["drivers.base_does_not_exist.some"]).to eql "value"
 
-      # Also ensure the "base" is set properly
-      expect(cfg["drivers.base_does_not_exist.base"]).to eql "nonexistent_base"
+      # Also ensure the "base" is _not_ set properly
+      expect(cfg["drivers.base_does_not_exist.base"]).to be_nil
+
+      # On the other hand, "extends" should stay.
+      expect(cfg["drivers.base_does_not_exist.extends"]).to eql "nonexistent_base"
     end
 
     it "does nothing when a hash extends itself" do

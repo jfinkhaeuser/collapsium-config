@@ -26,10 +26,22 @@ drivers:
 driver: leaf
 
 other:
-  base:
+  testbase:
     some: option
+  testbase2:
+    - some2: option2
+      some: option_override
 
 derived:
   test:
     foo: bar
-    extends: .other.base
+    extends: .other.testbase
+  test2:
+    - foo: bar
+      extends: .other.testbase
+  test3:
+    foo: bar
+    extends: .other.testbase2.0
+  test4:
+    foo: bar
+    extends: .other.testbase, .other.testbase2.0
