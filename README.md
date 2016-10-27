@@ -18,7 +18,7 @@ various configuration sources into one configuration object.
   if that exists, and merges it's contents recursively into the main
   configuration.
 - Using the special `extends` configuration key, allows a configuration Hash
-  to include all values from another configuration Hash.
+  to include all values from other configuration Hash(es).
 - Using the special, top-level `include` configuration key, allows a
   configuration file to be split into multiple included files.
 - As of `v0.2`, configuration files are [ERB templates](http://ruby-doc.org/stdlib-2.3.1/libdoc/erb/rdoc/ERB.html).
@@ -58,6 +58,32 @@ too:
 ```ruby
 my_config = Collapsium::Config::Configuration.load_config('filename.yaml')
 ```
+
+## Extension
+
+Given the following configuration file:
+
+```yaml
+base:
+  foo: 42
+
+derived:
+  bar: value
+  extends: .base
+```
+
+Then the special `extends` keyword is interpreted to merge all values from
+the value at path `.base` into the value at path `.derived`. Additionally,
+`.derived` will gain a new key `base` which is an Array containing all the
+bases merged into the value.
+
+- Absolute paths are preferred for values of `extends`.
+- Relative paths for values of `extends` are looked up in the parent of the
+  value that contains the `extends` keyword, i.e. the root in the example
+  above. So in this minimal example, specifying `.base` and `base` is
+  equivalent.
+- You can specify a comma-separated list of bases in the `extends` keyword.
+  Latter paths overwrite values in earlier paths.
 
 ## Templating
 
