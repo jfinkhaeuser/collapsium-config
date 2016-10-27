@@ -13,6 +13,7 @@ require 'collapsium-config/version'
 
 # rubocop:disable Style/UnneededPercentQ, Style/ExtraSpacing
 # rubocop:disable Style/SpaceAroundOperators
+# rubocop:disable Metrics/BlockLength
 Gem::Specification.new do |spec|
   spec.name          = "collapsium-config"
   spec.version       = Collapsium::Config::VERSION
@@ -45,5 +46,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'collapsium', '~> 0.5'
 end
+# rubocop:enable Metrics/BlockLength
 # rubocop:enable Style/SpaceAroundOperators
 # rubocop:enable Style/UnneededPercentQ, Style/ExtraSpacing
