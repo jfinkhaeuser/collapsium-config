@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     collapsium-config (0.2.2)
-      collapsium (~> 0.4)
+      collapsium (~> 0.5)
 
 GEM
   remote: https://rubygems.org/
@@ -10,20 +10,20 @@ GEM
     ast (2.3.0)
     codeclimate-test-reporter (0.6.0)
       simplecov (>= 0.7.1, < 1.0.0)
-    collapsium (0.4.1)
+    collapsium (0.5.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
     json (2.0.2)
-    parser (2.3.1.2)
+    parser (2.3.1.4)
       ast (~> 2.2)
     powerpack (0.1.1)
     rainbow (2.1.0)
-    rake (11.2.2)
+    rake (11.3.0)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
       rspec-mocks (~> 3.5.0)
-    rspec-core (3.5.2)
+    rspec-core (3.5.4)
       rspec-support (~> 3.5.0)
     rspec-expectations (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
@@ -32,7 +32,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.5.0)
     rspec-support (3.5.0)
-    rubocop (0.42.0)
+    rubocop (0.44.1)
       parser (>= 2.3.1.1, < 3.0)
       powerpack (~> 0.1)
       rainbow (>= 1.99.1, < 3.0)
@@ -44,7 +44,7 @@ GEM
       json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.0)
-    unicode-display_width (1.1.0)
+    unicode-display_width (1.1.1)
     yard (0.9.5)
 
 PLATFORMS
@@ -54,9 +54,9 @@ DEPENDENCIES
   bundler (~> 1.12)
   codeclimate-test-reporter
   collapsium-config!
-  rake (~> 11.2)
+  rake (~> 11.3)
   rspec (~> 3.5)
-  rubocop (~> 0.42)
+  rubocop (~> 0.44)
   simplecov (~> 0.12)
   yard (~> 0.9)
 
