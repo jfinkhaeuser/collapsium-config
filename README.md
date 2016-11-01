@@ -17,12 +17,14 @@ various configuration sources into one configuration object.
 - Given a main configuration file `foo.yml` to load, also loads `foo-local.yml`
   if that exists, and merges it's contents recursively into the main
   configuration.
+- Pathed access to configuration variables.
 - Using the special `extends` configuration key, allows a configuration Hash
   to include all values from other configuration Hash(es).
 - Using the special, top-level `include` configuration key, allows a
   configuration file to be split into multiple included files.
 - As of `v0.2`, configuration files are [ERB templates](http://ruby-doc.org/stdlib-2.3.1/libdoc/erb/rdoc/ERB.html).
   Do your templating stuff as you'd usually do it.
+- Allows overriding of configuration values from the environment.
 
 # Basic Usage
 
@@ -59,6 +61,20 @@ too:
 my_config = Collapsium::Config::Configuration.load_config('filename.yaml')
 ```
 
+## Pathed Access
+
+Thanks to [collapsium](https://github.com/jfinkhaeuser/collapsium)'s `UberHash`,
+configuration values can be accessed more easily than in a regular nested
+structure. That is, the following are equivalent:
+
+```ruby
+config["foo"]["bar"]["baz"]
+config["foo.bar.baz"]
+config[".foo.bar.baz"]
+config["foo.bar"]["baz"]
+config["foo"]["bar.baz"]
+```
+
 ## Extension
 
 Given the following configuration file:
@@ -85,6 +101,25 @@ bases merged into the value.
 - You can specify a comma-separated list of bases in the `extends` keyword.
   Latter paths overwrite values in earlier paths.
 
+## Environment Override
+
+If the environment defines a variable named the same as a configuration
+value path, transformed to upper case letters and with dot (`.`) separators
+replaced by underscore (`_`), the environment variable value is used instead.
+
+```ruby
+# Called with FOO_BAR=42
+config["foo.bar"] # => 42
+```
+
+Note that environment variables may contain `JSON` values, which will be parsed
+appropriately, e.g. the following works:
+
+```ruby
+# Called with FOO_BAR='{ "baz": 42 }'
+config["foo.bar.baz"] # => 42
+```
+
 ## Templating
 
 ERB templating in configuration files works out-of-the-box, but one of the
@@ -104,3 +139,20 @@ not to its individual keys:
 <%= data[:some_key] %> # correct usage
 <%= some_key %>        # incorrect usage
 ```
+
+## A Note on Priorities
+
+A lot of the features above interact with each other. For example, environment
+override still respects pathed access. In other cases, things are not quite
+so clear, so let's give you a rough idea on priorities in the code:
+
+1. Templating happens when files are loaded, and generates the most basic data
+   the gem works with.
+1. Configuration file merging happens next, i.e. `config.yml` and `config-local.yml`
+   are merged into one data structure.
+1. Next up is handling of `include` directives.
+1. After that, `extends` is resolved - that is, `extends` works on paths that
+   only exists after any of the above steps created them. This step finishes the
+   configuration loading process.
+1. Finally, environment override works whenever a value is *accessed*, meaning
+   if the environment changes, so does the configuration value.
