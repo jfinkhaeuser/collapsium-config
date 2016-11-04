@@ -114,7 +114,7 @@ module Collapsium
           config.recursive_merge!(local_config)
 
           # Resolve includes
-          config = resolve_includes(base, config, options[:data])
+          config = resolve_includes(base, config, options)
 
           # Create config from the result
           cfg = Configuration.new(config)
@@ -188,57 +188,36 @@ module Collapsium
           return data
         end
 
-        def resolve_includes(base, config, template_data)
-          processed = []
-          includes = []
+        def resolve_includes(base, config, options)
+          # Only process Hashes
+          if not config.is_a? Hash
+            return config
+          end
 
-          loop do
-            # Figure out includes
-            outer_inc = extract_includes(config)
-            if not outer_inc.empty?
-              includes = outer_inc
-            end
+          # Figure out includes. We have to recursively fetch the string and
+          # the symbol keys, and process includes where we find them.
+          ["include", :include].each do |key|
+            config.recursive_fetch_all(key) do |parent, value, _|
+              # The value contains the includes
+              includes = array_value(value)
+              parent.delete(key)
 
-            to_process = includes - processed
+              # Now merge all includes into the parent
+              includes.each do |filename|
+                # Load included file
+                incfile = Pathname.new(base.dirname)
+                incfile = incfile.join(filename)
 
-            # Stop resolving when all includes have been processed
-            if to_process.empty?
-              break
-            end
+                # Due to the way recursive_fetch works, we may get bad
+                included = Configuration.load_config(incfile, options)
 
-            # Load and merge the include files
-            to_process.each do |filename|
-              incfile = Pathname.new(base.dirname)
-              incfile = incfile.join(filename)
-
-              # Just try to open it, if that errors out that's ok.
-              file = incfile.open
-              contents = file.read
-
-              parsed = parse(incfile.extname, contents, template_data)
-
-              # Extract and merge includes
-              inner_inc = extract_includes(parsed)
-              includes += inner_inc
-
-              # Merge the rest
-              config.recursive_merge!(hashify(parsed))
-
-              processed << filename
+                # Merge included
+                parent.recursive_merge!(hashify(included), true)
+              end
             end
           end
 
           return config
-        end
-
-        def extract_includes(config)
-          # Figure out includes
-          includes = config.fetch("include", [])
-          config.delete("include")
-          includes = config.fetch(:include, includes)
-          config.delete(:include)
-
-          return array_value(includes)
         end
       end # class << self
 

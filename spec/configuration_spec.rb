@@ -207,6 +207,23 @@ describe Collapsium::Config::Configuration do
       expect(cfg["bar.foo"]).to eql 'something'
       expect(cfg["bar.baz"]).to eql 42
     end
+
+    it "can include array configuration files" do
+      config = File.join(@data_path, 'include-array.yml')
+      cfg = Collapsium::Config::Configuration.load_config(config)
+
+      expect(cfg["quux"]).to eql "baz"
+      expect(cfg["config"]).to eql %w(foo bar)
+    end
+
+    it "works in nested structures" do
+      config = File.join(@data_path, 'include-nested.yml')
+      cfg = Collapsium::Config::Configuration.load_config(config)
+
+      expect(cfg["foo"]).to eql "bar"
+      expect(cfg["baz.quux"]).to eql "baz" # Overridden from include!
+      expect(cfg["baz.config"]).to eql %w(foo bar)
+    end
   end
 
   describe "behaves like a UberHash" do

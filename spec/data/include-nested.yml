@@ -1,0 +1,5 @@
+---
+foo: bar
+baz:
+  quux: asdf
+  include: include-array.yml
