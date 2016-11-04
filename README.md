@@ -63,6 +63,31 @@ too:
 my_config = Collapsium::Config::Configuration.load_config('filename.yaml')
 ```
 
+### Array Files
+
+Configuration files can also contain Arrays at the top level. While that may
+make some sense at times, it does not make for good naming schemes and creates
+problems elsewhere.
+
+Therefore, if your file contains an Array at the top level, the class wraps it
+into a Hash with a `config` key containing the Array:
+
+```yaml
+- foo
+- bar
+```
+
+```ruby
+config["config"][0] # => "foo"
+config["config"][1] # => "bar"
+```
+
+### File Formats
+
+The gem supports loading [YAML](http://yaml.org/) and [JSON](http://www.json.org/)
+configuration files. Both formats can be mixed in the various mechanisms described
+below.
+
 ### Local Configuration Overrides
 
 For the example file of `config/config.yml`, if a file with the same path and
@@ -215,7 +240,7 @@ foo:
 **Notes:**
 
 - If your loaded configuration file contains an Array at the top level, then
-  a new key `data` will be added.
+  a new key `config` will be added (see Array Files above)
 - You can specify a comma-separated list of paths in the `include` keyword.
   Latter paths overwrite values in earlier paths.
 - You can also specify an Array of paths, with the same effect.
