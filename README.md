@@ -10,20 +10,12 @@ various configuration sources into one configuration object.
 [![Code Climate](https://codeclimate.com/github/jfinkhaeuser/collapsium-config/badges/gpa.svg)](https://codeclimate.com/github/jfinkhaeuser/collapsium-config)
 [![Test Coverage](https://codeclimate.com/github/jfinkhaeuser/collapsium-config/badges/coverage.svg)](https://codeclimate.com/github/jfinkhaeuser/collapsium-config/coverage)
 
-# Functionality
+# Summary
 
 - Supports [JSON](http://www.json.org/) and [YAML](http://yaml.org/) file
   formats.
-- Given a main configuration file `foo.yml` to load, also loads `foo-local.yml`
-  if that exists, and merges it's contents recursively into the main
-  configuration.
+- Generates configuration files from ERB templates, includes, local override files and an extension mechanism.
 - Pathed access to configuration variables.
-- Using the special `extends` configuration key, allows a configuration Hash
-  to include all values from other configuration Hash(es).
-- Using the special, top-level `include` configuration key, allows a
-  configuration file to be split into multiple included files.
-- As of `v0.2`, configuration files are [ERB templates](http://ruby-doc.org/stdlib-2.3.1/libdoc/erb/rdoc/ERB.html).
-  Do your templating stuff as you'd usually do it.
 - Allows overriding of configuration values from the environment.
 
 # Basic Usage
