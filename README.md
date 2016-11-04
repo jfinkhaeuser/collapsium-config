@@ -40,7 +40,9 @@ puts config["foo"] # loaded automatically from config.yml
 
 # Advanced Usage
 
-## Configuration File Location
+## Configuration File Management
+
+### Configuration File Location
 
 The friendly neighbour to the `#config` function introduced in the basic
 usage section above is the `#config_file` accessor. Its value will default
@@ -51,7 +53,7 @@ config_file = 'foo.yaml'
 puts config["foo"] # loaded automatically from foo.yaml
 ```
 
-## Loading Configuration Files
+### Loading Configuration Files
 
 All that `#config` and `#config_file` do is wrap `#load_config` such that
 configuration is loaded only once. You can load configuration files manually,
@@ -61,66 +63,41 @@ too:
 my_config = Collapsium::Config::Configuration.load_config('filename.yaml')
 ```
 
-## Pathed Access
+### Local Configuration Overrides
 
-Thanks to [collapsium](https://github.com/jfinkhaeuser/collapsium)'s `UberHash`,
-configuration values can be accessed more easily than in a regular nested
-structure. That is, the following are equivalent:
+For the example file of `config/config.yml`, if a file with the same path and
+name, and the name postfix `-local` exists (i.e. `config/config-local.yml`), that
+file will also be loaded. It's keys will be recursively added to the keys from the
+main configuration file, overwriting only leaves, not entire hashes.
 
-```ruby
-config["foo"]["bar"]["baz"]
-config["foo.bar.baz"]
-config[".foo.bar.baz"]
-config["foo.bar"]["baz"]
-config["foo"]["bar.baz"]
-```
-
-## Extension
-
-Given the following configuration file:
+Example:
 
 ```yaml
-base:
-  foo: 42
+# config/config.yml
+---
+foo:
+  bar: 42
+  baz: quux
 
-derived:
-  bar: value
-  extends: .base
+# config/config-local.yml
+---
+something: else
+foo:
+  baz: override
+
+# result
+---
+something: else
+foo:
+  bar: 42
+  baz: override
 ```
 
-Then the special `extends` keyword is interpreted to merge all values from
-the value at path `.base` into the value at path `.derived`. Additionally,
-`.derived` will gain a new key `base` which is an Array containing all the
-bases merged into the value.
+### Templating
 
-- Absolute paths are preferred for values of `extends`.
-- Relative paths for values of `extends` are looked up in the parent of the
-  value that contains the `extends` keyword, i.e. the root in the example
-  above. So in this minimal example, specifying `.base` and `base` is
-  equivalent.
-- You can specify a comma-separated list of bases in the `extends` keyword.
-  Latter paths overwrite values in earlier paths.
-
-## Environment Override
-
-If the environment defines a variable named the same as a configuration
-value path, transformed to upper case letters and with dot (`.`) separators
-replaced by underscore (`_`), the environment variable value is used instead.
-
-```ruby
-# Called with FOO_BAR=42
-config["foo.bar"] # => 42
-```
-
-Note that environment variables may contain `JSON` values, which will be parsed
-appropriately, e.g. the following works:
-
-```ruby
-# Called with FOO_BAR='{ "baz": 42 }'
-config["foo.bar.baz"] # => 42
-```
-
-## Templating
+Configuration files aren't quite static entities even taking merging of local
+overrides into account. They can further be generated at load time by
+templating, extension and including.
 
 ERB templating in configuration files works out-of-the-box, but one of the
 more powerful features is of course to substitute some values in the template
@@ -139,6 +116,165 @@ not to its individual keys:
 <%= data[:some_key] %> # correct usage
 <%= some_key %>        # incorrect usage
 ```
+
+But even without explicit passing of a data hash, you can use templating to
+e.g. include environment variables:
+
+```erb
+foo: <%= ENV['MYVAR'] %>
+```
+
+Note, though, that this might interact unexpectedly with the environment
+override feature described later.
+
+
+### Extension
+
+An additional feature is that you can extend individual hashes with values from
+other hashes.
+
+```yaml
+---
+root:
+  foo: bar
+derived:
+  baz: quux
+  extends: root
+```
+
+This results in:
+
+```yaml
+---
+root:
+  foo: bar
+derived:
+  baz: quux
+  foo: bar
+  base: root
+```
+
+The special `extends` keyword is interpreted to merge all values from
+the value at path `.root` into the value at path `.derived`. Additionally,
+`.derived` will gain a new key `base` which is an Array containing all the
+bases merged into the value.
+
+**Notes:**
+
+- Absolute paths are preferred for values of `extends`.
+- Relative paths for values of `extends` are looked up in the parent of the
+  value that contains the `extends` keyword, i.e. the root in the example
+  above. So in this minimal example, specifying `.base` and `base` is
+  equivalent.
+- You can specify a comma-separated list of bases in the `extends` keyword.
+  Latter paths overwrite values in earlier paths.
+- You can also specify an Array of paths, with the same effect.
+- This feature means that `extends` and `base` are reserved configuration keys!
+- Multiple levels of extension are supported.
+
+### Includes
+
+Includes work just as you might expect: if you specify a key `include` anywhere,
+the value will be interpreted as a file system path to another configuration file.
+That other file will be loaded, and the parent of the `include` statement will
+gain all the values from the other configuration file.
+
+Example:
+
+```yaml
+# config/main.yml
+include: config/first.yml
+foo:
+  bar: 42
+  include: config/second.yml
+```
+
+```yaml
+# config/first.yml
+baz: quux
+```
+
+```yaml
+# config/second.yml
+- 123
+- 456
+```
+
+Will result in:
+
+```yaml
+# final YAML
+baz: quux
+foo:
+  bar: 42
+  data:
+    - 123
+    - 456
+```
+
+**Notes:**
+
+- If your loaded configuration file contains an Array at the top level, then
+  a new key `data` will be added.
+- You can specify a comma-separated list of paths in the `include` keyword.
+  Latter paths overwrite values in earlier paths.
+- You can also specify an Array of paths, with the same effect.
+- This means that `include` is a reserved configuration key.
+
+## Configuration Access
+
+### Pathed Access
+
+Thanks to [collapsium](https://github.com/jfinkhaeuser/collapsium)'s `UberHash`,
+configuration values can be accessed more easily than in a regular nested
+structure. Take the following configuration as an example:
+
+```yaml
+---
+foo:
+  bar:
+    baz: 42
+    quux:
+      - 123
+      - "asdf"
+```
+
+Then, the following are equivalent:
+
+```ruby
+config["foo"]["bar"]["baz"]
+config["foo.bar.baz"]
+config[".foo.bar.baz"]
+config["foo.bar"]["baz"]
+config["foo"]["bar.baz"]
+```
+
+The major benefit is that if *any* of the path components does not exist, nil is
+returned (and the behaviour is equivalent to other access methods such as
+`:fetch`, etc.)
+
+Similarly you can use this type of access for writing: `config['baz.quux'] = 42`
+will create both the `baz` hash, and it's child the `quux` key.
+
+## Environment Override
+
+Given a configuration path, any environment variable with the same name (change
+path to upper case letters and replace `.` with `_`, e.g. `foo.bar` becomes
+`FOO_BAR`) overrides the values in the configuration file.
+
+```ruby
+# Called with FOO_BAR=42
+config["foo.bar"] # => 42
+```
+
+If the environment variable is parseable as JSON, then that parsed JSON will
+**replace** the original configuration path (i.e. it will not be merged).
+
+```ruby
+# Called with FOO_BAR='{ "baz": 42 }'
+config["foo.bar.baz"] # => 42
+```
+
 
 ## A Note on Priorities
 
