@@ -9,6 +9,8 @@
 
 require 'collapsium'
 
+require 'collapsium-config/support/values'
+
 module Collapsium
   module Config
     ##
@@ -40,6 +42,7 @@ module Collapsium
     # result may be unexpected.
     class Configuration < ::Collapsium::UberHash
       include ::Collapsium::EnvironmentOverride
+      include ::Collapsium::Config::Support::Values
 
       # @api private
       # Very simple YAML parser
@@ -70,6 +73,8 @@ module Collapsium
       end
 
       class << self
+        include ::Collapsium::Config::Support::Values
+
         # @api private
         # Mapping of file name extensions to parser types.
         FILE_TO_PARSER = {
@@ -233,12 +238,7 @@ module Collapsium
           includes = config.fetch(:include, includes)
           config.delete(:include)
 
-          # We might have a simple/string include
-          if not includes.is_a? Array
-            includes = [includes]
-          end
-
-          return includes
+          return array_value(includes)
         end
       end # class << self
 
@@ -311,8 +311,7 @@ module Collapsium
         end
 
         # Now to resolve the path to the base and remove the "extends" keyword.
-        base_paths = value["extends"]
-        base_paths = base_paths.split(/,/).map(&:strip)
+        base_paths = array_value(value["extends"])
         bases = {}
         base_paths.each do |base_path|
           if not base_path.start_with?(separator)

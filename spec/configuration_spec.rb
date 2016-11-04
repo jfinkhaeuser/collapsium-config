@@ -180,6 +180,15 @@ describe Collapsium::Config::Configuration do
       expect(cfg["baz"]).to eql 'test'
     end
 
+    it "can include multiple files from a comma-separated list" do
+      config = File.join(@data_path, 'include-multiple2.yml')
+      cfg = Collapsium::Config::Configuration.load_config(config)
+
+      expect(cfg["foo"]).to eql 42
+      expect(cfg["bar"]).to eql 'quux'
+      expect(cfg["baz"]).to eql 'test'
+    end
+
     it "can resolve includes recursively" do
       config = File.join(@data_path, 'include-recursive.yml')
       cfg = Collapsium::Config::Configuration.load_config(config)
