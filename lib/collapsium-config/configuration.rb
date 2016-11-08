@@ -337,20 +337,16 @@ module Collapsium
         bases.each do |base_path, base_value|
           base_value.recursive_resolve(root, base_path)
           merged_base.recursive_merge!(base_value, true)
+
+          # Modify bases for this path: we go depth first into the hierarchy
+          base_val = merged_base.fetch("base", []).dup
+          base_val << base_path
+          base_val.uniq!
+          merged_base["base"] = base_val
         end
 
         # ... but value needs to stay authoritative.
         value.recursive_merge!(merged_base, false)
-
-        # Set the base if all is well.
-        base_val = value["base"] || []
-        base_val += bases.map { |p, _| p }
-        base_val.uniq!
-        if base_val.empty?
-          return
-        end
-
-        value["base"] = base_val
       end
     end # class Configuration
   end # module Config
