@@ -26,6 +26,10 @@ drivers:
     extends: branch2,.global
     leafoption: baz
     branch1option: override
+  leaf2:
+    extends: .global, branch2
+    leafoption: baz
+    branch1option: override
   base_does_not_exist:
     extends: nonexistent_base
     some: value

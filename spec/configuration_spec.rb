@@ -2,8 +2,11 @@ require 'spec_helper'
 require_relative '../lib/collapsium-config/configuration'
 
 describe Collapsium::Config::Configuration do
-  before do
+  before(:all) do
     @data_path = File.join(File.dirname(__FILE__), 'data')
+  end
+
+  before(:each) do
     ENV.delete("BAZ")
   end
 
@@ -96,66 +99,117 @@ describe Collapsium::Config::Configuration do
   end
 
   describe "extend functionality" do
-    it "extends configuration hashes" do
-      config = File.join(@data_path, 'driverconfig.yml')
-      cfg = Collapsium::Config::Configuration.load_config(config)
+    context "merging" do
+      before(:all) do
+        @config_path = File.join(@data_path, 'driverconfig.yml')
+        @config = Collapsium::Config::Configuration.load_config(@config_path)
+      end
 
-      # First, test for non-extended values
-      expect(cfg["drivers.mock.mockoption"]).to eql 42
-      expect(cfg["drivers.branch1.branch1option"]).to eql "foo"
-      expect(cfg["drivers.branch2.branch2option"]).to eql "bar"
-      expect(cfg["drivers.branch3.branch3option"]).to eql "baz"
-      expect(cfg["drivers.leaf.leafoption"]).to eql "baz"
+      context "drivers" do
+        it "accepts mock drivers" do
+          # There is no built-in driver labelled 'mock'
+          expect(@config["drivers.mock.mockoption"]).to eql 42
+        end
 
-      # Now test extended values
-      expect(cfg["drivers.branch1.mockoption"]).to eql 42
-      expect(cfg["drivers.branch2.mockoption"]).to eql 42
-      expect(cfg["drivers.leaf.mockoption"]).to eql 42
+        it "merges a single ancestor" do
+          # Check merged values
+          expect(@config["drivers.branch1.branch1option"]).to eql "foo"
+          expect(@config["drivers.branch1.mockoption"]).to eql 42
 
-      expect(cfg["drivers.branch2.branch1option"]).to eql "foo"
-      expect(cfg["drivers.leaf.branch1option"]).to eql "override" # not "foo" !
+          # Check merge metadata
+          expect(@config["drivers.branch1.extends"]).to be_nil
+          expect(@config["drivers.branch1.base"]).to eql %w(.drivers.mock)
+        end
 
-      expect(cfg["drivers.leaf.branch2option"]).to eql "bar"
-      expect(cfg["drivers.leaf.global_opt"]).to eql "set"
+        it "merges multiple ancestor depths" do
+          # Check merged values
+          expect(@config["drivers.branch2.branch2option"]).to eql "bar"
+          expect(@config["drivers.branch2.branch1option"]).to eql "foo"
+          expect(@config["drivers.branch2.mockoption"]).to eql 42
 
-      expect(cfg["drivers.branch3.global_opt"]).to eql "set"
+          # Check merge metadata
+          expect(@config["drivers.branch2.extends"]).to be_nil
+          expect(@config["drivers.branch2.base"]).to eql %w(.drivers.mock
+                                                            .drivers.branch1)
+        end
 
-      # Also test that all levels go back to base == mock
-      expect(cfg["drivers.branch1.base"]).to eql %w(.drivers.mock)
-      expect(cfg["drivers.branch2.base"]).to eql %w(.drivers.mock .drivers.branch1)
-      expect(cfg["drivers.branch3.base"]).to eql %w(.global)
-      expect(cfg["drivers.leaf.base"]).to eql %w(.drivers.mock .drivers.branch1
-                                                 .drivers.branch2 .global)
+        it "merges from absolute paths" do
+          # Check merged values
+          expect(@config["drivers.branch3.branch3option"]).to eql "baz"
+          expect(@config["drivers.branch3.global_opt"]).to eql "set"
 
-      # We expect that 'derived' is extended with '.other.base', too
-      expect(cfg["derived.test.foo"]).to eql 'bar'
-      expect(cfg["derived.test.some"]).to eql 'option'
+          # Check merge metadata
+          expect(@config["drivers.branch3.extends"]).to be_nil
+          expect(@config["drivers.branch3.base"]).to eql %w(.global)
+        end
 
-      # Expect this to also work with list items
-      expect(cfg["derived.test2.0.foo"]).to eql 'bar'
-      expect(cfg["derived.test2.0.some"]).to eql 'option'
+        it "merges from sibling and absolute path" do
+          # Check merged values
+          expect(@config["drivers.leaf.leafoption"]).to eql "baz"
+          expect(@config["drivers.leaf.branch2option"]).to eql "bar"
+          expect(@config["drivers.leaf.branch1option"]).to eql "override"
+          expect(@config["drivers.leaf.mockoption"]).to eql 42
+          expect(@config["drivers.leaf.global_opt"]).to eql "set"
 
-      expect(cfg["derived.test3.foo"]).to eql 'bar'
-      expect(cfg["derived.test3.some2"]).to eql 'option2'
+          # Check merge metadata
+          expect(@config["drivers.leaf.extends"]).to be_nil
+          expect(@config["drivers.leaf.base"]).to eql %w(.drivers.mock
+                                                         .drivers.branch1
+                                                         .drivers.branch2
+                                                         .global)
+        end
 
-      # Expect this to work with multiple inheritance
-      expect(cfg["derived.test4.foo"]).to eql 'bar'
-      expect(cfg["derived.test4.some"]).to eql 'option_override'
-      expect(cfg["derived.test4.some2"]).to eql 'option2'
-    end
+        it "merges from global and absolute path" do
+          # Check merged values
+          expect(@config["drivers.leaf2.leafoption"]).to eql "baz"
+          expect(@config["drivers.leaf2.global_opt"]).to eql "set"
+          expect(@config["drivers.leaf2.branch2option"]).to eql "bar"
+          expect(@config["drivers.leaf2.branch1option"]).to eql "override"
+          expect(@config["drivers.leaf2.mockoption"]).to eql 42
 
-    it "extends configuration hashes when the base does not exist" do
-      config = File.join(@data_path, 'driverconfig.yml')
-      cfg = Collapsium::Config::Configuration.load_config(config)
+          # Check merge metadata
+          expect(@config["drivers.leaf2.extends"]).to be_nil
+          expect(@config["drivers.leaf2.base"]).to eql %w(.global
+                                                          .drivers.mock
+                                                          .drivers.branch1
+                                                          .drivers.branch2)
+        end
 
-      # Ensure the hash contains its own value
-      expect(cfg["drivers.base_does_not_exist.some"]).to eql "value"
+        it "works when a base does not exist" do
+          # Ensure the hash contains its own value
+          expect(@config["drivers.base_does_not_exist.some"]).to eql "value"
 
-      # Also ensure the "base" is _not_ set properly
-      expect(cfg["drivers.base_does_not_exist.base"]).to be_nil
+          # Also ensure the "base" is _not_ set properly
+          expect(@config["drivers.base_does_not_exist.base"]).to be_nil
 
-      # On the other hand, "extends" should stay.
-      expect(cfg["drivers.base_does_not_exist.extends"]).to eql "nonexistent_base"
+          # On the other hand, "extends" should stay.
+          expect(@config["drivers.base_does_not_exist.extends"]).to eql \
+            "nonexistent_base"
+        end
+      end
+
+      context "non-driver values" do
+        it "merges from absolute paths" do
+          expect(@config["derived.test.foo"]).to eql 'bar'
+          expect(@config["derived.test.some"]).to eql 'option'
+        end
+
+        it "can merge into list items" do
+          expect(@config["derived.test2.0.foo"]).to eql 'bar'
+          expect(@config["derived.test2.0.some"]).to eql 'option'
+        end
+
+        it "can merge from list items" do
+          expect(@config["derived.test3.foo"]).to eql 'bar'
+          expect(@config["derived.test3.some2"]).to eql 'option2'
+        end
+
+        it "accepts multiple extensions" do
+          expect(@config["derived.test4.foo"]).to eql 'bar'
+          expect(@config["derived.test4.some"]).to eql 'option_override'
+          expect(@config["derived.test4.some2"]).to eql 'option2'
+        end
+      end
     end
 
     it "does nothing when a hash extends itself" do
