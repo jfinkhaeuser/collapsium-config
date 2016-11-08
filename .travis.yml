@@ -3,6 +3,9 @@ rvm:
   - 2.0
   - 2.1
   - 2.2
+script:
+  - bundle exec rake
+  - bundle exec codeclimate-test-reporter
 addons:
   code_climate:
     repo_token: 3cca4d10a51839bc5d115d41a0c12b98cbdb27a21e9c86544324fa028b799b84
