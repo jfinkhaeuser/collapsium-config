@@ -188,6 +188,10 @@ bases merged into the value.
 - You can also specify an Array of paths, with the same effect.
 - This feature means that `extends` and `base` are reserved configuration keys!
 - Multiple levels of extension are supported.
+- The order of items in `base` is deterministic:
+  1. Items are added in the order in which they appear in `extends`, but...
+  1. ... after each item, the items it itself extends are added before the next
+     item is processed.
 
 ### Includes
 
