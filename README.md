@@ -190,8 +190,8 @@ bases merged into the value.
 - Multiple levels of extension are supported.
 - The order of items in `base` is deterministic:
   1. Items are added in the order in which they appear in `extends`, but...
-  1. ... after each item, the items it itself extends are added before the next
-     item is processed.
+  1. ... before each item, it's ancestors are listed in depth-first order,
+     which means the root of each item's hierarchy is listed first.
 
 ### Includes
 
