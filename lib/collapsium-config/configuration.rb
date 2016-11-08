@@ -191,7 +191,9 @@ module Collapsium
         def resolve_includes(base, config, options)
           # Only process Hashes
           if not config.is_a? Hash
+            # :nocov:
             return config
+            # :nocov:
           end
 
           # Figure out includes. We have to recursively fetch the string and
@@ -290,11 +292,20 @@ module Collapsium
         end
 
         # Now to resolve the path to the base and remove the "extends" keyword.
+        bases = fetch_base_values(root, parent_path(path), value)
+
+        # Merge the bases
+        merge_base_values(root, value, bases)
+
+        # And we're done, set the value to what was being merged.
+        root[path] = value
+      end
+
+      def fetch_base_values(root, parent, value)
         base_paths = array_value(value["extends"])
-        bases = {}
+        bases = []
         base_paths.each do |base_path|
           if not base_path.start_with?(separator)
-            parent = parent_path(path)
             base_path = "#{parent}#{separator}#{base_path}"
           end
           base_path = normalize_path(base_path)
@@ -307,7 +318,7 @@ module Collapsium
             next
           end
 
-          bases[base_path] = base_value
+          bases << [base_path, base_value]
         end
 
         # Only delete the "extends" keyword if we found all base.
@@ -315,6 +326,10 @@ module Collapsium
           value.delete("extends")
         end
 
+        return bases
+      end
+
+      def merge_base_values(root, value, bases)
         # We need to recursively resolve the base values before merging them into
         # value. To preserve the override order, we need to overwrite values when
         # merging bases...
@@ -328,11 +343,14 @@ module Collapsium
         value.recursive_merge!(merged_base, false)
 
         # Set the base if all is well.
-        if value["base"].nil? and not bases.keys.empty?
-          value["base"] = bases.keys
+        base_val = value["base"] || []
+        base_val += bases.map { |p, _| p }
+        base_val.uniq!
+        if base_val.empty?
+          return
         end
 
-        root[path] = value
+        value["base"] = base_val
       end
     end # class Configuration
   end # module Config

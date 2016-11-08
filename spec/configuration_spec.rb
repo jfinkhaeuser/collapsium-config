@@ -104,6 +104,7 @@ describe Collapsium::Config::Configuration do
       expect(cfg["drivers.mock.mockoption"]).to eql 42
       expect(cfg["drivers.branch1.branch1option"]).to eql "foo"
       expect(cfg["drivers.branch2.branch2option"]).to eql "bar"
+      expect(cfg["drivers.branch3.branch3option"]).to eql "baz"
       expect(cfg["drivers.leaf.leafoption"]).to eql "baz"
 
       # Now test extended values
@@ -115,11 +116,16 @@ describe Collapsium::Config::Configuration do
       expect(cfg["drivers.leaf.branch1option"]).to eql "override" # not "foo" !
 
       expect(cfg["drivers.leaf.branch2option"]).to eql "bar"
+      expect(cfg["drivers.leaf.global_opt"]).to eql "set"
+
+      expect(cfg["drivers.branch3.global_opt"]).to eql "set"
 
       # Also test that all levels go back to base == mock
       expect(cfg["drivers.branch1.base"]).to eql %w(.drivers.mock)
-      expect(cfg["drivers.branch2.base"]).to eql %w(.drivers.mock)
-      expect(cfg["drivers.leaf.base"]).to eql %w(.drivers.mock)
+      expect(cfg["drivers.branch2.base"]).to eql %w(.drivers.mock .drivers.branch1)
+      expect(cfg["drivers.branch3.base"]).to eql %w(.global)
+      expect(cfg["drivers.leaf.base"]).to eql %w(.drivers.mock .drivers.branch1
+                                                 .drivers.branch2 .global)
 
       # We expect that 'derived' is extended with '.other.base', too
       expect(cfg["derived.test.foo"]).to eql 'bar'
