@@ -9,6 +9,6 @@
 module Collapsium
   module Config
     # The current release version
-    VERSION = "0.4.2".freeze
+    VERSION = "0.4.3".freeze
   end # module Config
 end # module Collapsium
