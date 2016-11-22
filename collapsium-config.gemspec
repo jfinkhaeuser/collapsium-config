@@ -44,7 +44,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov", "~> 0.12"
   spec.add_development_dependency "yard", "~> 0.9"
 
-  spec.add_dependency 'collapsium', '~> 0.6'
+  spec.add_dependency 'collapsium', '~> 0.7'
 end
 # rubocop:enable Metrics/BlockLength
 # rubocop:enable Style/SpaceAroundOperators
