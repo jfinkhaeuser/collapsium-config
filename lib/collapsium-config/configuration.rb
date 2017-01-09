@@ -106,6 +106,7 @@ module Collapsium
         #   - data [Hash] data Hash to pass on to the templating mechanism.
         def load_config(path, options = {})
           # Option defaults
+          options = options.dup
           if options[:resolve_extensions].nil?
             options[:resolve_extensions] = true
           end
