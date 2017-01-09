@@ -18,6 +18,13 @@ module Collapsium
     # The default configuration file path
     DEFAULT_CONFIG_PATH = 'config.yml'.freeze
 
+    # Default options for configuration loading
+    DEFAULT_CONFIG_OPTIONS = {
+      resolve_extensions: true,
+      nonexistent_base: :ignore,
+      data: nil,
+    }.freeze
+
     ##
     # Modules can have class methods, too, but it's a little more verbose to
     # provide them.
@@ -32,6 +39,16 @@ module Collapsium
         return @config_file || DEFAULT_CONFIG_PATH
       end
 
+      # Set configuration loading options
+      def config_options=(opts)
+        @config_options = opts
+      end
+
+      # @return [Hash] configuration loading options
+      def config_options
+        return @config_options || DEFAULT_CONFIG_OPTIONS
+      end
+
       # @api private
       attr_accessor :config
     end # module ClassMethods
@@ -42,7 +59,8 @@ module Collapsium
     def config
       if Config.config.nil? or Config.config.empty?
         begin
-          Config.config = Configuration.load_config(Config.config_file)
+          Config.config = Configuration.load_config(Config.config_file,
+                                                    Config.config_options)
         rescue Errno::ENOENT
           Config.config = {}
         end

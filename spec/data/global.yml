@@ -2,3 +2,5 @@
 test: 42
 some:
   path: 123
+foo:
+  extends: some

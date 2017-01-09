@@ -4,11 +4,12 @@ require_relative '../lib/collapsium-config'
 include Collapsium::Config
 
 describe Collapsium::Config do
-  before do
+  before :each do
     @data_path = File.join(File.dirname(__FILE__), 'data')
     ENV.delete("SOME_PATH")
     ENV.delete("SOME")
     ENV.delete("PATH")
+    Collapsium::Config.config = nil
   end
 
   it "fails to load configuration from the default path (it does not exist)" do
@@ -54,6 +55,13 @@ describe Collapsium::Config do
 
       expect(config["some.path"]).to eql "override"
       expect(config["some"]["path"]).to eql "override"
+    end
+
+    it "accepts non-default options" do
+      Collapsium::Config.config_file = File.join(@data_path, 'global.yml')
+      Collapsium::Config.config_options = { resolve_extensions: false }
+
+      expect(config["foo.base"]).to be_nil
     end
   end
 end
