@@ -55,6 +55,17 @@ too:
 my_config = Collapsium::Config::Configuration.load_config('filename.yaml')
 ```
 
+#### Loading Options
+
+- `data` can be passed for resolving references in ERB templating (see below)
+- `resolve_extensions` is a flag that determines whether the `extends` keyword
+  is honoured (see below), and defaults to `true`.
+- `nonexistent_base` can be one of `:ignore` and `:extend` and determines how
+  `extends` should behave if a base is referenced that does not exist:
+  - `:ignore` behaves as if the base simply wasn't mentioned.
+  - `:extend` behaves as if the base did in fact exist, but was an empty
+    configuration Hash.
+
 ### Array Files
 
 Configuration files can also contain Arrays at the top level. While that may
