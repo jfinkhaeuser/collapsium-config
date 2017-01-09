@@ -98,13 +98,30 @@ module Collapsium
         # @param options [Hash] options hash with the following keys:
         #   - resolve_extensions [Boolean] flag whether to resolve configuration
         #       hash extensions. (see `#resolve_extensions`)
+        #   - nonexistent_base [Symbol] either of :extend or :ignore; flag that
+        #     determines how a nonexistent base should be treated:
+        #     - :extend behaves as if it does exist, but refers to an empty Hash
+        #     - :ignore does not modify the `.base` or `.extends` properties,
+        #       and simply ignores the reference.
         #   - data [Hash] data Hash to pass on to the templating mechanism.
         def load_config(path, options = {})
           # Option defaults
           if options[:resolve_extensions].nil?
             options[:resolve_extensions] = true
           end
+          if not [true, false].include?(options[:resolve_extensions])
+            raise "The :resolve_extensions option must be a boolean value!"
+          end
+          if options[:nonexistent_base].nil?
+            options[:nonexistent_base] = :ignore
+          end
+          if not [:extend, :ignore].include?(options[:nonexistent_base])
+            raise "The :nonexistent_base option must be one of :ignore or :extend!"
+          end
           options[:data] ||= {}
+          if not options[:data].is_a? Hash
+            raise "The :data option must be a Hash!"
+          end
 
           # Load base and local configuration files
           base, config = load_base_config(path, options[:data])
@@ -121,7 +138,7 @@ module Collapsium
 
           # Now resolve config hashes that extend other hashes.
           if options[:resolve_extensions]
-            cfg.resolve_extensions!
+            cfg.resolve_extensions!(options)
           end
 
           return cfg
@@ -251,35 +268,35 @@ module Collapsium
       # Also note that all of this means that :extends and :base are reserved
       # keywords that cannot be used in configuration files other than for this
       # purpose!
-      def resolve_extensions!
+      def resolve_extensions!(options)
         # The root object is always a Hash, so has keys, which can be processed
         # recursively.
-        recursive_resolve(self)
+        recursive_resolve(self, "", options)
       end
 
-      def recursive_resolve(root, prefix = "")
+      def recursive_resolve(root, prefix = "", options = {})
         # The self object is a Hash or an Array. Let's iterate over its children
         # one by one. Defaulting to a Hash here is just convenience, it could
         # equally be an Array.
         children = root.fetch(prefix, {})
 
-        merge_base(root, prefix, children)
+        merge_base(root, prefix, children, options)
 
         if children.is_a? Hash
           children.each do |key, _|
             full_key = normalize_path("#{prefix}#{separator}#{key}")
-            recursive_resolve(root, full_key)
+            recursive_resolve(root, full_key, options)
           end
         elsif children.is_a? Array
           children.each_with_index do |_, idx|
             key = idx.to_s
             full_key = normalize_path("#{prefix}#{separator}#{key}")
-            recursive_resolve(root, full_key)
+            recursive_resolve(root, full_key, options)
           end
         end
       end
 
-      def merge_base(root, path, value)
+      def merge_base(root, path, value, options)
         # If the value is not a Hash, we can't do anything here.
         if not value.is_a? Hash
           return
@@ -292,18 +309,19 @@ module Collapsium
         end
 
         # Now to resolve the path to the base and remove the "extends" keyword.
-        bases = fetch_base_values(root, parent_path(path), value)
+        bases = fetch_base_values(root, parent_path(path), value, options)
 
         # Merge the bases
-        merge_base_values(root, value, bases)
+        merge_base_values(root, value, bases, options)
 
         # And we're done, set the value to what was being merged.
         root[path] = value
       end
 
-      def fetch_base_values(root, parent, value)
+      def fetch_base_values(root, parent, value, options)
         base_paths = array_value(value["extends"])
         bases = []
+        base_count = 0
         base_paths.each do |base_path|
           if not base_path.start_with?(separator)
             base_path = "#{parent}#{separator}#{base_path}"
@@ -315,30 +333,38 @@ module Collapsium
           # We default to nil. Only Hash base values can be processed.
           base_value = root.fetch(base_path, nil)
           if not base_value.is_a? Hash
+            bases << [base_path, nil]
             next
           end
 
           bases << [base_path, base_value]
+          base_count += 1
         end
 
         # Only delete the "extends" keyword if we found all base.
-        if bases.length == base_paths.length
+        if options[:nonexistent_base] == :extend or \
+           base_count == base_paths.length
           value.delete("extends")
         end
 
         return bases
       end
 
-      def merge_base_values(root, value, bases)
+      def merge_base_values(root, value, bases, options)
         # We need to recursively resolve the base values before merging them into
         # value. To preserve the override order, we need to overwrite values when
         # merging bases...
         merged_base = Configuration.new
         bases.each do |base_path, base_value|
-          base_value.recursive_resolve(root, base_path)
-          merged_base.recursive_merge!(base_value, true)
+          if not base_value.nil?
+            base_value.recursive_resolve(root, base_path)
+            merged_base.recursive_merge!(base_value, true)
+          end
 
           # Modify bases for this path: we go depth first into the hierarchy
+          if options[:nonexistent_base] == :ignore and base_value.nil?
+            next
+          end
           base_val = merged_base.fetch("base", []).dup
           base_val << base_path
           base_val.uniq!

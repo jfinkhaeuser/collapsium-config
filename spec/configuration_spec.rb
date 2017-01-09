@@ -49,6 +49,25 @@ describe Collapsium::Config::Configuration do
       cfg = Collapsium::Config::Configuration.load_config(config)
       expect(cfg).to be_empty
     end
+
+    it "validates options" do
+      config = File.join(@data_path, 'hash.yml')
+
+      # :resolve_extensions must be a boolean
+      opts = { resolve_extensions: 42 }
+      expect { Collapsium::Config::Configuration.load_config(config, opts) }.to \
+        raise_error RuntimeError
+
+      # :data must be a Hash
+      opts = { data: 42 }
+      expect { Collapsium::Config::Configuration.load_config(config, opts) }.to \
+        raise_error RuntimeError
+
+      # :nonexistent_base must be one of :ignore, :extend
+      opts = { nonexistent_base: :foo }
+      expect { Collapsium::Config::Configuration.load_config(config, opts) }.to \
+        raise_error RuntimeError
+    end
   end
 
   describe "merge behaviour" do
@@ -175,16 +194,31 @@ describe Collapsium::Config::Configuration do
                                                           .drivers.branch2)
         end
 
-        it "works when a base does not exist" do
-          # Ensure the hash contains its own value
-          expect(@config["drivers.base_does_not_exist.some"]).to eql "value"
+        context "Extension" do
+          it "ignores nonexistent bases by default" do
+            # Ensure the hash contains its own value
+            expect(@config["drivers.base_does_not_exist.some"]).to eql "value"
 
-          # Also ensure the "base" is _not_ set properly
-          expect(@config["drivers.base_does_not_exist.base"]).to be_nil
+            # Also ensure the "base" is _not_ set properly
+            expect(@config["drivers.base_does_not_exist.base"]).to be_nil
 
-          # On the other hand, "extends" should stay.
-          expect(@config["drivers.base_does_not_exist.extends"]).to eql \
-            "nonexistent_base"
+            # On the other hand, "extends" should stay.
+            expect(@config["drivers.base_does_not_exist.extends"]).to eql \
+              "nonexistent_base"
+          end
+
+          it "can pretend nonexistent bases are empty" do
+            config = Collapsium::Config::Configuration.load_config(@config_path, nonexistent_base: :extend)
+
+            # Ensure the hash contains its own value
+            expect(config["drivers.base_does_not_exist.some"]).to eql "value"
+
+            # Here, the base must be set!
+            expect(config["drivers.base_does_not_exist.base"]).to eql %w(.drivers.nonexistent_base)
+
+            # Then "extends" needs to vanish.
+            expect(config["drivers.base_does_not_exist.extends"]).to be_nil
+          end
         end
       end
 
