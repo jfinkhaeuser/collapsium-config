@@ -51,7 +51,12 @@ module Collapsium
 
         # @return parsed string
         def self.parse(string)
-          return YAML.safe_load(string)
+          if YAML.respond_to?(:safe_load)
+            return YAML.safe_load(string)
+          end
+          # rubocop:disable Security/YAMLLoad
+          return YAML.load(string)
+          # rubocop:enable Security/YAMLLoad
         end
       end
       private_constant :YAMLParser
