@@ -4,10 +4,10 @@ AllCops:
 # Metrics
 
 Metrics/LineLength:
-  Max: 83
+  Max: 84
   Details: >-
     Line length of 80 is ideal for readability and compatibility; we'll accept
-    an extra 3 for minor edge cases.
+    an extra 4 for minor edge cases (e.g. copyright notice).
 
 Metrics/MethodLength:
   Max: 35
