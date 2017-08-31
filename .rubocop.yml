@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.3
 
 # Metrics
 
@@ -30,15 +30,15 @@ Metrics/ClassLength:
 Metrics/ModuleLength:
   Max: 300
 
+Metrics/BlockLength:
+  Max: 300
+
 # Style
 
 Style/StringLiterals:
   Enabled: false
 
 Style/ConditionalAssignment:
-  Enabled: false
-
-Style/EmptyLinesAroundModuleBody:
   Enabled: false
 
 Style/AndOr:
@@ -59,9 +59,6 @@ Style/IfUnlessModifier:
 Style/TrailingCommaInLiteral:
   Enabled: false
 
-Style/FirstParameterIndentation:
-  Enabled: false
-
 Style/TrailingUnderscoreVariable:
   Enabled: false
 
@@ -71,5 +68,27 @@ Style/NumericLiterals:
 Style/FileName:
   Enabled: false
 
-Style/SpaceAfterNot:
+Style/FrozenStringLiteralComment:
   Enabled: false
+
+Style/PreferredHashMethods:
+  Enabled: false
+
+Style/NumericPredicate:
+  Enabled: false  # Not compatible with <= 2.2
+
+# Layout
+
+Layout/EmptyLineAfterMagicComment:
+  Enabled: false
+
+Layout/SpaceAfterNot:
+  Enabled: false
+
+Layout/FirstParameterIndentation:
+  Enabled: false
+
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: false
+
+
