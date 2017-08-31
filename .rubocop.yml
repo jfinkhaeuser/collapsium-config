@@ -77,6 +77,9 @@ Style/PreferredHashMethods:
 Style/NumericPredicate:
   Enabled: false  # Not compatible with <= 2.2
 
+Style/YodaCondition:
+  Enabled: false
+
 # Layout
 
 Layout/EmptyLineAfterMagicComment:
