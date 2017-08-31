@@ -33,7 +33,7 @@ describe Collapsium::Config::Configuration do
       config = File.join(@data_path, 'array.yaml')
       cfg = Collapsium::Config::Configuration.load_config(config)
 
-      expect(cfg["config"]).to eql %w(foo bar)
+      expect(cfg["config"]).to eql %w[foo bar]
     end
 
     it "loads a JSON config correctly" do
@@ -86,14 +86,14 @@ describe Collapsium::Config::Configuration do
       config = File.join(@data_path, 'merge-array.yaml')
       cfg = Collapsium::Config::Configuration.load_config(config)
 
-      expect(cfg["config"]).to eql %w(foo bar baz)
+      expect(cfg["config"]).to eql %w[foo bar baz]
     end
 
     it "merges an array and hash config" do
       config = File.join(@data_path, 'merge-fail.yaml')
       cfg = Collapsium::Config::Configuration.load_config(config)
 
-      expect(cfg["config"]).to eql %w(array in main config)
+      expect(cfg["config"]).to eql %w[array in main config]
       expect(cfg["local"]).to eql "override is a hash"
     end
 
@@ -137,7 +137,7 @@ describe Collapsium::Config::Configuration do
 
           # Check merge metadata
           expect(@config["drivers.branch1.extends"]).to be_nil
-          expect(@config["drivers.branch1.base"]).to eql %w(.drivers.mock)
+          expect(@config["drivers.branch1.base"]).to eql %w[.drivers.mock]
         end
 
         it "merges multiple ancestor depths" do
@@ -148,8 +148,8 @@ describe Collapsium::Config::Configuration do
 
           # Check merge metadata
           expect(@config["drivers.branch2.extends"]).to be_nil
-          expect(@config["drivers.branch2.base"]).to eql %w(.drivers.mock
-                                                            .drivers.branch1)
+          expect(@config["drivers.branch2.base"]).to eql %w[.drivers.mock
+                                                            .drivers.branch1]
         end
 
         it "merges from absolute paths" do
@@ -159,7 +159,7 @@ describe Collapsium::Config::Configuration do
 
           # Check merge metadata
           expect(@config["drivers.branch3.extends"]).to be_nil
-          expect(@config["drivers.branch3.base"]).to eql %w(.global)
+          expect(@config["drivers.branch3.base"]).to eql %w[.global]
         end
 
         it "merges from sibling and absolute path" do
@@ -172,10 +172,10 @@ describe Collapsium::Config::Configuration do
 
           # Check merge metadata
           expect(@config["drivers.leaf.extends"]).to be_nil
-          expect(@config["drivers.leaf.base"]).to eql %w(.drivers.mock
+          expect(@config["drivers.leaf.base"]).to eql %w[.drivers.mock
                                                          .drivers.branch1
                                                          .drivers.branch2
-                                                         .global)
+                                                         .global]
         end
 
         it "merges from global and absolute path" do
@@ -188,10 +188,10 @@ describe Collapsium::Config::Configuration do
 
           # Check merge metadata
           expect(@config["drivers.leaf2.extends"]).to be_nil
-          expect(@config["drivers.leaf2.base"]).to eql %w(.global
+          expect(@config["drivers.leaf2.base"]).to eql %w[.global
                                                           .drivers.mock
                                                           .drivers.branch1
-                                                          .drivers.branch2)
+                                                          .drivers.branch2]
         end
 
         context "Extension" do
@@ -217,7 +217,7 @@ describe Collapsium::Config::Configuration do
 
             # Here, the base must be set!
             expect(config["drivers.base_does_not_exist.base"]).to eql \
-              %w(.drivers.nonexistent_base)
+              %w[.drivers.nonexistent_base]
 
             # Then "extends" needs to vanish.
             expect(config["drivers.base_does_not_exist.extends"]).to be_nil
@@ -310,7 +310,7 @@ describe Collapsium::Config::Configuration do
       cfg = Collapsium::Config::Configuration.load_config(config)
 
       expect(cfg["quux"]).to eql "baz"
-      expect(cfg["config"]).to eql %w(foo bar)
+      expect(cfg["config"]).to eql %w[foo bar]
     end
 
     it "works in nested structures" do
@@ -319,7 +319,7 @@ describe Collapsium::Config::Configuration do
 
       expect(cfg["foo"]).to eql "bar"
       expect(cfg["baz.quux"]).to eql "baz" # Overridden from include!
-      expect(cfg["baz.config"]).to eql %w(foo bar)
+      expect(cfg["baz.config"]).to eql %w[foo bar]
     end
   end
 

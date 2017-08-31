@@ -6,23 +6,23 @@ describe Collapsium::Config::Support::Values do
 
   context "#array_value" do
     it "splits a comma separated string" do
-      expect(tester.array_value("foo,bar")).to eql %w(foo bar)
+      expect(tester.array_value("foo,bar")).to eql %w[foo bar]
     end
 
     it "strips spaces from comma separated strings" do
-      expect(tester.array_value(" foo ,  bar ")).to eql %w(foo bar)
+      expect(tester.array_value(" foo ,  bar ")).to eql %w[foo bar]
     end
 
     it "turns single strings into an array" do
-      expect(tester.array_value("foo")).to eql %w(foo)
+      expect(tester.array_value("foo")).to eql %w[foo]
     end
 
     it "strips spaces from single strings" do
-      expect(tester.array_value(" foo ")).to eql %w(foo)
+      expect(tester.array_value(" foo ")).to eql %w[foo]
     end
 
     it "strips array elements" do
-      expect(tester.array_value(['foo ', ' bar'])).to eql %w(foo bar)
+      expect(tester.array_value(['foo ', ' bar'])).to eql %w[foo bar]
     end
 
     it "wraps other values into arrays" do

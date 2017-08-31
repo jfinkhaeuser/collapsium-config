@@ -51,7 +51,7 @@ module Collapsium
 
         # @return parsed string
         def self.parse(string)
-          return YAML.load(string)
+          return YAML.safe_load(string)
         end
       end
       private_constant :YAMLParser
@@ -116,7 +116,7 @@ module Collapsium
           if options[:nonexistent_base].nil?
             options[:nonexistent_base] = :ignore
           end
-          if not [:extend, :ignore].include?(options[:nonexistent_base])
+          if not %i[extend ignore].include?(options[:nonexistent_base])
             raise "The :nonexistent_base option must be one of :ignore or :extend!"
           end
           options[:data] ||= {}
