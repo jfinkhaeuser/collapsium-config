@@ -3,7 +3,7 @@
 # collapsium-config
 # https://github.com/jfinkhaeuser/collapsium-config
 #
-# Copyright (c) 2016-2017 Jens Finkhaeuser and other collapsium-config contributors.
+# Copyright (c) 2016-2018 Jens Finkhaeuser and other collapsium-config contributors.
 # All rights reserved.
 #
 
